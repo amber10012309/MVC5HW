@@ -1,0 +1,15 @@
+select *  from (select    
+--select count(*)  from (select --查詢筆數(要把order by Time desc註解掉)
+ Id AS Id,
+  Level AS Lavel,
+  Message AS Msg,
+  TimeStamp AS Time,
+  x.value('@key', 'nvarchar(100)') AS AttrKey,
+  x.value('.', 'nvarchar(500)') AS AttrValue
+FROM dbo.Log
+CROSS APPLY Properties.nodes('/properties/property') AS p (x)
+where TimeStamp>'2022-09-09 17:30:00.0000000 +08:00' and TimeStamp<'2022-09-09 18:45:00.0000000 +08:00') AS v  --時間再更新
+PIVOT
+(MAX(AttrValue) FOR AttrKey IN (UserId, data, RequestPath, Succeeded , MachineName,TraceId)) AS PivotTable
+where Msg like 'Login Success, ID:%' and SUBSTRING(Msg,20,10)!=UserId
+order by Time desc
